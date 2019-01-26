@@ -1,27 +1,9 @@
 import random
 
-
-texture = {
-    'grass': 'data/grass.png',
-    'rock': 'data/rock.png',
-    'sand': 'data/sand.png',
-    # TODO! FIND PLAYER AND ENEMIES TEXTURE
-    'enemy': '',
-    'boss': '',
-    'hard-enemy': '',
-    'player': 'data/character.png',
-    'water': 'data/water.png',
-    # TODO! FIND PICS FOR PLANTS
-    'plants': [],
-    'sand-plants': [],
-    'trees': [],
-    'sand-trees': [],
-}
-
 player_default_params = {
     'health': 100,
     'max-health': 100,
-    'damage': lambda: random.randint(1, 6),
+    'damage': 6,  # use in range like: choice(range(damage - 10, damage))
     'armor': 0,
     'coins': 0,
     'inventory': [None for i in range(15)],
@@ -44,8 +26,26 @@ hard_enemy_default_params = {
 boss_default_params = {
     'health': 200,
     'damage': lambda: random.randint(50, 100),
-    'armor': 20,
-    'coins': 250,
+    'armor': 100,
+    'coins': 1000,
+}
+
+params = {
+    'grass': 'data/grass.png',
+    'rock': 'data/rock.png',
+    'sand': 'data/sand.png',
+    # TODO! FIND PLAYER AND ENEMIES TEXTURE
+    'enemy': ['', enemy_default_params],
+    'boss': ['', boss_default_params],
+    'hard-enemy': ['', hard_enemy_default_params],
+    'player': 'data/character.png',
+    'water': 'data/water.png',
+    # TODO! FIND PICS FOR PLANTS
+    'plants': [],
+    'sand-plants': [],
+    'trees': [],
+    'sand-trees': [],
+    'shop-man': '',
 }
 
 
@@ -56,4 +56,5 @@ items = {
     'armor': '',
     'sword': '',
     'health-increase-pill': '',
+    'coins-chest': '',
 }
