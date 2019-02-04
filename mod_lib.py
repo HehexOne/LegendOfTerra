@@ -68,10 +68,6 @@ def generate_map():
     print("----GENERATED MAP----")
 
 
-generate_map()
-reset()
-
-
 class Creature:
 
     def __init__(self, name, hp, damage):
