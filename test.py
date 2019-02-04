@@ -1,4 +1,6 @@
-import mod_lib
-
-for i in range(100):
-    print(mod_lib.player_default_params['damage'])
+# gn = threading.Thread(target=generate_map)
+# gn.start()
+# print("hello, world!")
+# while gn.is_alive():
+#     pass
+# print("Ended thread 1")
