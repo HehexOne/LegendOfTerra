@@ -1,9 +1,10 @@
 import random
 import pygame
-import threading
 import json
 import math
 from PIL import Image, ImageFilter, ImageEnhance
+
+fps = 60
 
 # High values of this parameter not recommended if you have got not so powerful PC (64 max)
 size = 64  # Size of map (Example: size = 256  =>  map: 256x256)
@@ -65,6 +66,10 @@ def generate_map():
     js["isNew"] = False
     json.dump(js, open("data/save.json", 'w'))
     print("----GENERATED MAP----")
+
+
+generate_map()
+reset()
 
 
 class Creature:
