@@ -6,9 +6,10 @@ from PIL import Image, ImageFilter, ImageEnhance
 import numpy as np
 import os
 
-fps = 60
-screen_size = width, height = 900, 900
 tile_size = 225
+fps = 60
+screen_size = width, height = tile_size * 3, tile_size * 3
+
 
 # High values of this parameter
 #  Not recommended if you have got not so powerful PC (64 max)
@@ -30,6 +31,13 @@ textures = {
     2: "sand.png",
     3: "snow.png"
 }
+
+class Direction:
+
+    up = 0
+    down = 1
+    left = 2
+    right = 3
 
 
 # Reset saves.json
@@ -147,7 +155,7 @@ class Creature(pygame.sprite.Sprite):
             self.damage - self.damage_delta,
             self.damage)
         self.coins = 0
-        self.speed = 20
+        self.speed = 3
         # self.image = load_image(image)
         # self.rect = self.image.get_rect()
         # self.rect.x = 0
@@ -167,9 +175,10 @@ class Player(Creature):
         super().__init__(group, "Player", 10, 10, 9)
         self.frames = []
         self.cut_sheet(load_image('player.png'), columns, rows)
-        self.cur_frame = 0
+        self.cur_frame = 24
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
+        self.direction = 0
 
     def restore_from_save(self, d):
         self.name = d["name"]
@@ -194,8 +203,21 @@ class Player(Creature):
                     frame_location, self.rect.size)))
 
     def update(self):
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        self.image = self.frames[self.cur_frame]
+        # self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        # self.image = self.frames[self.cur_frame]
+        pass
+
+    def move(self):
+        if pygame.key.get_pressed()[pygame.K_UP]:
+            new_x = 0
+            new_y = -self.speed
+        elif pygame.key.get_pressed()[pygame.K_DOWN]:
+            new_x = 0
+            new_y = self.speed
+        else:
+            new_x = 0
+            new_y = 0
+        self.rect = self.rect.move(new_x, new_y)
 
     def generate_save(self):
         return {"name": self.name,
@@ -212,6 +234,7 @@ class Tile(pygame.sprite.Sprite):
 
     def __init__(self, group, kind, x, y):
         super().__init__(group)
+        self.kind = kind
         self.image = load_image(textures[kind])
         self.rect = self.image.get_rect()
         self.rect.x = x

@@ -1,5 +1,5 @@
 import pygame
-from mod_lib import *
+from LegendOfTerra.mod_lib import *
 
 pygame.init()
 screen = pygame.display.set_mode(screen_size)
@@ -11,9 +11,16 @@ dp = DataProvider()
 if dp.get_value("isNew"):
     generate_map()
 
+
+pos = [0, 0]
+world_map = dp.get_value("map")
+
+
 tile_group = pygame.sprite.Group()
 water_group = pygame.sprite.Group()
 creatures_group = pygame.sprite.Group()
+
+player = Player(creatures_group, 9, 4, 0, 0)
 
 
 def init():
@@ -29,8 +36,12 @@ def loading():
 
 
 def game():
-    screen.blit(pygame.transform.scale(load_image("map.png"), (size * tile_size, size * tile_size)), (0, 0))
-    Player(creatures_group, 9, 4, 0, 0)
+    for x in range(width // tile_size):
+        for y in range(height // tile_size):
+            tile = Tile(tile_group, world_map[pos[0]][pos[1]][y][x],
+                        x * tile_size, y * tile_size)
+            if not tile.kind:
+                tile.add(water_group)
 
 
 def pause():
@@ -43,11 +54,11 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+    player.move()
     clock.tick(fps)
-    screen.blit(pygame.transform.scale(load_image("map.png"), (size * tile_size, size * tile_size)), (0, 0))
+    tile_group.draw(screen)
     creatures_group.draw(screen)
     creatures_group.update()
-    tile_group.draw(screen)
     pygame.display.flip()
 
 pygame.quit()
