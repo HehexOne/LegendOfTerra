@@ -19,13 +19,14 @@ class Generate(QMainWindow):
         self.grass = 1
         self.sand = 2
         self.snow = 3
-        self.size = int(self.square.text())
-        self.water_barrier = int(self.ocean.text())
-        self.grass_barrier = int(self.trava.text())
+
         self.btn.clicked.connect(self.generate_map)
 
 
     def generate_map(self):
+        self.size = int(self.square.text())
+        self.water_barrier = int(self.ocean.text())
+        self.grass_barrier = int(self.trava.text())
         print("\n\n----GENERATING ON----")
         img = Image.new("RGB", (self.size, self.size), (0, 0, 0))
         pixels = img.load()
