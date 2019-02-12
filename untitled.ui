@@ -77,7 +77,7 @@
      <string>Количество воды:</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QLineEdit" name="ocean">
     <property name="geometry">
      <rect>
       <x>710</x>
@@ -142,7 +142,7 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="len">
+   <widget class="QLineEdit" name="square">
     <property name="geometry">
      <rect>
       <x>710</x>

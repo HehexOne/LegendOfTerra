@@ -1,12 +1,12 @@
 import random
 import sys
-import pygame
 import os
 import math
 from PIL import Image, ImageFilter, ImageEnhance
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton
 from PyQt5.QtGui import QPixmap
+
 
 class Generate(QMainWindow):
 
@@ -19,24 +19,10 @@ class Generate(QMainWindow):
         self.grass = 1
         self.sand = 2
         self.snow = 3
-        self.size = self.len
-        self.water_barrier = self.water  
-        self.grass_barrier = self.grass
+        self.size = int(self.square.text())
+        self.water_barrier = int(self.ocean.text())
+        self.grass_barrier = int(self.trava.text())
         self.btn.clicked.connect(self.generate_map)
-
-        def load_image(name, colorkey=None):
-            fullname = os.path.join('data', name)
-            try:
-                image = pygame.image.load(fullname)
-            except pygame.error as message:
-                print('Cannot load image:', name)
-                raise SystemExit(message)
-            image = image.convert_alpha()
-            if colorkey is not None:
-                if colorkey is -1:
-                    colorkey = image.get_at((0, 0))
-                image.set_colorkey(colorkey)
-            return image
 
 
     def generate_map(self):
@@ -46,7 +32,6 @@ class Generate(QMainWindow):
         print("  Generating noise.")
         for x in range(0, self.size):
             for y in range(self.size):
-                # Difficult formula for generation
                 val = int((random.uniform(0, 6.5) * 50) *
                           math.pi /
                           math.sin(random.uniform(0, 10)) *
@@ -86,7 +71,6 @@ class Generate(QMainWindow):
         img.save('data/map.png')
         img.close()
         print("----GENERATED MAP----\n\n")
-
 
 
 app = QApplication(sys.argv)
