@@ -7,7 +7,7 @@ clock = pygame.time.Clock()
 pygame.font.init()
 font = pygame.font.SysFont('Century Gothic', 25)
 
-
+render_ui = True
 dp = DataProvider()
 if dp.get_value("isNew"):
     generate_map()
@@ -21,6 +21,7 @@ player = None
 def init():
     global player
     [Raccoon(i) for i in dp.get_value("creatures")]
+    [Bush(i) for i in dp.get_value("foliage")]
     Border(0, 0, width, 0, "up")
     Border(0, height, width, height, "down")
     Border(0, 0, 0, height, "left")
@@ -57,6 +58,7 @@ def draw_interface():
 
 
 def game():
+    global render_ui
     re_render(world_map)
     while pygame.sprite.spritecollideany(player, water_group):
         player.move(random.randint(0, width), random.randint(0, width))
@@ -71,17 +73,34 @@ def game():
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
                     player.use_potion()
+                if event.key == pygame.K_F1:
+                    render_ui = not render_ui
+                if event.key == pygame.K_ESCAPE:
+                    pause()
+                if event.key == pygame.K_e:
+                    player.check_bush_raccoon()
+                if event.key == pygame.K_SPACE:
+                    enemy = pygame.sprite.spritecollideany(player, enemies_group)
+                    if enemy:
+                        Particle(player.rect.x - 80, player.rect.y - 80)
+                        enemy.cast_damage(player.get_damage(), player)
         clock.tick(fps)
         tile_group.draw(screen)
+        sparkle_group.update()
+        enemies_group.update(world_map)
+        enemies_group.draw(screen)
+        foliage_group.update(world_map)
+        raccoons_group.update(world_map)
         creatures_group.draw(screen)
         player_group.update(world_map)
         player_group.draw(screen)
         creatures_group.update(world_map)
-        raccoons_group.update(world_map)
         borders.draw(screen)
+        sparkle_group.draw(screen)
         if player.hp <= 0:
             dead()
-        draw_interface()
+        if render_ui:
+            draw_interface()
         pygame.display.flip()
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             pause()
