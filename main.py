@@ -1,64 +1,64 @@
-import pygame
-from LegendOfTerra.mod_lib import *
+from mod_lib import *
 
 pygame.init()
 screen = pygame.display.set_mode(screen_size)
-
 fps = 60
 clock = pygame.time.Clock()
 
 dp = DataProvider()
 if dp.get_value("isNew"):
     generate_map()
+    del dp
 
-
-pos = [0, 0]
+dp = DataProvider()
 world_map = dp.get_value("map")
-
-
-tile_group = pygame.sprite.Group()
-water_group = pygame.sprite.Group()
-creatures_group = pygame.sprite.Group()
-
-player = Player(creatures_group, 9, 4, 0, 0)
+player = None
 
 
 def init():
-    pass
+    global player
+    Border(0, 0, width, 0, "up")
+    Border(0, height, width, height, "down")
+    Border(0, 0, 0, height, "left")
+    Border(width, 0, width, height, "right")
+    player = Player(creatures_group, 9, 4, 20, 20)
+    if not dp.get_value("isNew"):
+        set_block(dp.get_value("Active_Block"))
+        player.restore_from_save(dp.get_value("Player"))
 
 
 def start_screen():
+    init()
+    game()
     pass
-
-
-def loading():
-    pass
-
-
-def game():
-    for x in range(width // tile_size):
-        for y in range(height // tile_size):
-            tile = Tile(tile_group, world_map[pos[0]][pos[1]][y][x],
-                        x * tile_size, y * tile_size)
-            if not tile.kind:
-                tile.add(water_group)
 
 
 def pause():
     pass
 
 
-running = True
-game()
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    player.move()
-    clock.tick(fps)
-    tile_group.draw(screen)
-    creatures_group.draw(screen)
-    creatures_group.update()
-    pygame.display.flip()
+def game():
+    re_render(world_map)
+    while pygame.sprite.spritecollideany(player, water_group):
+        player.move(random.randint(0, width), random.randint(0, width))
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                dp.set_value("Player", player.generate_save())
+                dp.set_value("Active_Block", get_block())
+                dp.save()
+                running = False
+        clock.tick(fps)
+        tile_group.draw(screen)
+        creatures_group.draw(screen)
+        creatures_group.update(world_map)
+        borders.draw(screen)
+        pygame.display.flip()
+        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            pause()
+
+
+start_screen()
 
 pygame.quit()

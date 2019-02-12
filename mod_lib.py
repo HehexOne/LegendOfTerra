@@ -13,7 +13,7 @@ screen_size = width, height = tile_size * 3, tile_size * 3
 
 # High values of this parameter
 #  Not recommended if you have got not so powerful PC (64 max)
-size = 64  # Size of map (Example: size = 256  =>  map: 256x256)
+size = 66  # Size of map (Example: size = 256  =>  map: 256x256)
 
 # ID's for our map array which goes to save.json (For future comparing)
 water = 0
@@ -25,6 +25,19 @@ snow = 3
 water_barrier = 100  # Standard values: 70
 grass_barrier = 140  # Standard values: 140
 
+block = [0, 0]
+
+
+def get_block():
+    global block
+    return block
+
+
+def set_block(val):
+    global block
+    block = val
+
+
 textures = {
     0: "water.png",
     1: "grass.png",
@@ -32,12 +45,14 @@ textures = {
     3: "snow.png"
 }
 
-class Direction:
 
-    up = 0
-    down = 1
-    left = 2
-    right = 3
+# All groups
+tile_group = pygame.sprite.Group()
+creatures_group = pygame.sprite.Group()
+water_group = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
+borders = pygame.sprite.Group()
+player_group = pygame.sprite.Group()
 
 
 # Reset saves.json
@@ -65,7 +80,7 @@ def load_image(name, colorkey=None):
 
 def set_val(x, y, val, arr):
     tmp_val = width // tile_size
-    arr[x // tmp_val][y // tmp_val][y % tmp_val][x % tmp_val] = val
+    arr[x // tmp_val][y // tmp_val][x % tmp_val][y % tmp_val] = val
 
 
 # Function that generates the world and sets "isNew" variable to False
@@ -122,7 +137,6 @@ def generate_map():
     img.close()
     js = json.load(open("data/save.json", 'r'))
     js["map"] = arr.tolist()
-    js["isNew"] = False
     json.dump(js, open("data/save.json", 'w'))
     print("----GENERATED MAP----\n\n")
 
@@ -130,7 +144,11 @@ def generate_map():
 class DataProvider:
 
     def __init__(self):
-        self.data = json.load(open("data/save.json", 'r'))
+        try:
+            self.data = json.load(open("data/save.json", 'r'))
+        except Exception:
+            reset()
+            self.data = json.load(open("data/save.json", 'r'))
 
     def get_value(self, name):
         return self.data.get(name, None)
@@ -139,6 +157,7 @@ class DataProvider:
         self.data[name] = val
 
     def save(self):
+        self.data["isNew"] = False
         json.dump(self.data, open("data/save.json", 'w'))
 
 
@@ -155,7 +174,7 @@ class Creature(pygame.sprite.Sprite):
             self.damage - self.damage_delta,
             self.damage)
         self.coins = 0
-        self.speed = 3
+        self.speed = 4
         # self.image = load_image(image)
         # self.rect = self.image.get_rect()
         # self.rect.x = 0
@@ -173,12 +192,12 @@ class Player(Creature):
 
     def __init__(self, group, columns, rows, x, y):
         super().__init__(group, "Player", 10, 10, 9)
+        self.add(player_group)
         self.frames = []
         self.cut_sheet(load_image('player.png'), columns, rows)
         self.cur_frame = 24
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
-        self.direction = 0
 
     def restore_from_save(self, d):
         self.name = d["name"]
@@ -192,6 +211,9 @@ class Player(Creature):
         self.coins = d["coins"]
         self.rect.x = d["coords"]["x"]
         self.rect.y = d["coords"]["y"]
+        while pygame.sprite.spritecollideany(self, water_group):
+            self.rect.x = random.randint(1, d["coords"]["x"])
+            self.rect.y = random.randint(1, d["coords"]["y"])
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -202,22 +224,58 @@ class Player(Creature):
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
 
-    def update(self):
-        # self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        # self.image = self.frames[self.cur_frame]
-        pass
-
-    def move(self):
+    def update(self, world_map):
+        old_x = self.rect.x
+        old_y = self.rect.y
         if pygame.key.get_pressed()[pygame.K_UP]:
             new_x = 0
             new_y = -self.speed
+            self.image = self.frames[random.randint(0, 8)]
         elif pygame.key.get_pressed()[pygame.K_DOWN]:
             new_x = 0
             new_y = self.speed
+            self.image = self.frames[random.randint(18, 26)]
+        elif pygame.key.get_pressed()[pygame.K_LEFT]:
+            new_x = -self.speed
+            new_y = 0
+            self.image = self.frames[random.randint(9, 17)]
+        elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+            new_x = self.speed
+            new_y = 0
+            self.image = self.frames[random.randint(27, 33)]
         else:
             new_x = 0
             new_y = 0
         self.rect = self.rect.move(new_x, new_y)
+        if pygame.sprite.spritecollideany(self, water_group):
+            self.rect = self.rect.move(old_x - self.rect.x, old_y - self.rect.y)
+        brds = pygame.sprite.spritecollideany(self, borders)
+        if brds:
+            global block
+            tmp_block = block
+            self.rect = self.rect.move(old_x - self.rect.x, old_y - self.rect.y)
+            x, y = self.rect.x, self.rect.y
+            if brds.type == "up" and block[1] != 0:
+                self.move(self.rect.x, 580)
+                block = [block[0], block[1] - 1]
+            elif brds.type == "down" and block[1] != (size // (width // tile_size)) - 1:
+                self.move(self.rect.x, 10)
+                block = [block[0], block[1] + 1]
+            elif brds.type == "left" and block[0] != 0:
+                self.move(580, self.rect.y)
+                block = [block[0] - 1, block[1]]
+            elif brds.type == "right" and block[0] != (size // (width // tile_size)) - 1:
+                self.move(20, self.rect.y)
+                block = [block[0] + 1, block[1]]
+            re_render(world_map)
+            if pygame.sprite.spritecollideany(self, water_group):
+                self.move(x, y)
+                block = tmp_block
+                re_render(world_map)
+
+    def move(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
 
     def generate_save(self):
         return {"name": self.name,
@@ -240,3 +298,26 @@ class Tile(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
+
+def re_render(world_map):
+    [i.kill() for i in tile_group.sprites()]
+    for x in range(width // tile_size):
+        for y in range(height // tile_size):
+            tile = Tile(tile_group, world_map[block[0]][block[1]][x][y],
+                        x * tile_size, y * tile_size)
+            if not tile.kind:
+                tile.add(water_group)
+
+
+class Border(pygame.sprite.Sprite):
+
+    def __init__(self, x1, y1, x2, y2, type):
+        super().__init__(all_sprites)
+        self.add(borders)
+        self.type = type
+        if x1 == x2:
+            self.image = pygame.Surface([1, y2 - y1])
+            self.rect = pygame.Rect(x1, y1, 1, y2 - y1)
+        else:
+            self.image = pygame.Surface([x2 - x1, 1])
+            self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
