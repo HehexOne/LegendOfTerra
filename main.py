@@ -4,6 +4,9 @@ pygame.init()
 screen = pygame.display.set_mode(screen_size)
 fps = 60
 clock = pygame.time.Clock()
+pygame.font.init()
+font = pygame.font.SysFont('Century Gothic', 25)
+
 
 dp = DataProvider()
 if dp.get_value("isNew"):
@@ -17,11 +20,12 @@ player = None
 
 def init():
     global player
+    [Raccoon(i) for i in dp.get_value("creatures")]
     Border(0, 0, width, 0, "up")
     Border(0, height, width, height, "down")
     Border(0, 0, 0, height, "left")
     Border(width, 0, width, height, "right")
-    player = Player(creatures_group, 9, 4, 20, 20)
+    player = Player(player_group, 9, 4, 20, 20)
     if not dp.get_value("isNew"):
         set_block(dp.get_value("Active_Block"))
         player.restore_from_save(dp.get_value("Player"))
@@ -37,6 +41,21 @@ def pause():
     pass
 
 
+def dead():
+    pass
+
+
+def draw_interface():
+    pygame.draw.rect(screen, (0, 0, 0), (20, 20, 200, 40))
+    pygame.draw.rect(screen, (0, 0, 0), (237, 20, 200, 40))
+    pygame.draw.rect(screen, (0, 0, 0), (455, 20, 200, 40))
+    pygame.draw.rect(screen, (200, 0, 0), (30, 30, abs(int(180 * (player.hp / player.max_hp))), 20))
+    textsurface = font.render(f'Coins: {player.coins} / Potions: {player.num_of_potions}', False, (255, 255, 255))
+    screen.blit(textsurface, (460, 30))
+    textsurface = font.render(f'Score: {player.score}', False, (255, 255, 255))
+    screen.blit(textsurface, (245, 30))
+
+
 def game():
     re_render(world_map)
     while pygame.sprite.spritecollideany(player, water_group):
@@ -49,11 +68,20 @@ def game():
                 dp.set_value("Active_Block", get_block())
                 dp.save()
                 running = False
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    player.use_potion()
         clock.tick(fps)
         tile_group.draw(screen)
         creatures_group.draw(screen)
+        player_group.update(world_map)
+        player_group.draw(screen)
         creatures_group.update(world_map)
+        raccoons_group.update(world_map)
         borders.draw(screen)
+        if player.hp <= 0:
+            dead()
+        draw_interface()
         pygame.display.flip()
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             pause()

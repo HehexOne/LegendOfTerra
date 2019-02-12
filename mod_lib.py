@@ -53,6 +53,7 @@ water_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 borders = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+raccoons_group = pygame.sprite.Group()
 
 
 # Reset saves.json
@@ -110,6 +111,7 @@ def generate_map():
     tmp_val = width // tile_size
     arr = np.zeros((size // tmp_val, size // tmp_val, tmp_val, tmp_val),
                    dtype=np.int32)
+    creatures = []
     snow_disabled = random.choice([0, 1])
     for x in range(size):
         for y in range(size):
@@ -133,9 +135,12 @@ def generate_map():
                     = snow
                 pixels[x, y] = random.randint(220, 255), \
                                random.randint(220, 255), 255
+    for i in range(random.randint(20, 50)):
+        creatures.append(Raccoon().generate_save())
     img.save("data/map.png")
     img.close()
     js = json.load(open("data/save.json", 'r'))
+    js["creatures"] = creatures
     js["map"] = arr.tolist()
     json.dump(js, open("data/save.json", 'w'))
     print("----GENERATED MAP----\n\n")
@@ -192,12 +197,13 @@ class Player(Creature):
 
     def __init__(self, group, columns, rows, x, y):
         super().__init__(group, "Player", 10, 10, 9)
-        self.add(player_group)
         self.frames = []
         self.cut_sheet(load_image('player.png'), columns, rows)
         self.cur_frame = 24
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
+        self.num_of_potions = 3
+        self.score = 0
 
     def restore_from_save(self, d):
         self.name = d["name"]
@@ -211,6 +217,8 @@ class Player(Creature):
         self.coins = d["coins"]
         self.rect.x = d["coords"]["x"]
         self.rect.y = d["coords"]["y"]
+        self.score = d["score"]
+        self.num_of_potions = d["num_of_potions"]
         while pygame.sprite.spritecollideany(self, water_group):
             self.rect.x = random.randint(1, d["coords"]["x"])
             self.rect.y = random.randint(1, d["coords"]["y"])
@@ -223,6 +231,12 @@ class Player(Creature):
                 frame_location = (self.rect.w * i, self.rect.h * j)
                 self.frames.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect.size)))
+
+    def use_potion(self):
+        if self.num_of_potions != 0:
+            self.num_of_potions -= 1
+            self.max_hp += 10
+            self.hp = self.max_hp
 
     def update(self, world_map):
         old_x = self.rect.x
@@ -285,7 +299,62 @@ class Player(Creature):
                 "damage_delta": self.damage_delta,
                 "coins": self.coins,
                 "coords": {"x": self.rect.x,
-                           "y": self.rect.y}}
+                           "y": self.rect.y},
+                "score": self.score,
+                "num_of_potions": self.num_of_potions}
+
+
+class Raccoon(Creature):
+
+    def __init__(self, d=None):
+        super().__init__(creatures_group, "Shop", 2 ** 45, 0, 0)
+        self.block = [random.randint(0, 21), random.randint(0, 21)]
+        self.frames = []
+        self.add(raccoons_group)
+        self.removed = False
+        self.cut_sheet(load_image('raccoon.png'), 12, 8)
+        self.cur_frame = 58
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(random.randint(20, width - 30), random.randint(20, width - 30))
+        if d is not None:
+            self.restore_from_save(d)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self, world_map):
+        if pygame.sprite.spritecollideany(self, water_group):
+            self.remove(creatures_group)
+            return
+        if not self.removed and block != self.block:
+            self.remove(creatures_group)
+            self.removed = True
+        elif self.removed and block == self.block:
+            self.add(creatures_group)
+            self.removed = False
+        player = pygame.sprite.spritecollideany(self, player_group)
+        if player and pygame.key.get_pressed()[pygame.K_e] and player.coins >= 100:
+            player.coins -= 100
+            player.num_of_potions += 1
+
+    def generate_save(self):
+        return {"type": "Raccoon",
+                "coords": {
+                    "block": self.block,
+                    "coords": [self.rect.x, self.rect.y]
+                }
+                }
+
+    def restore_from_save(self, d):
+        self.block = d["coords"]["block"]
+        self.rect.x = d["coords"]["coords"][0]
+        self.rect.y = d["coords"]["coords"][1]
 
 
 class Tile(pygame.sprite.Sprite):

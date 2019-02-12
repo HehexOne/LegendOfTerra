@@ -10,7 +10,6 @@ from PyQt5.QtGui import QPixmap
 
 class Generate(QMainWindow):
 
-
     def __init__(self):
         super().__init__()
         uic.loadUi('untitled.ui', self)
@@ -23,7 +22,6 @@ class Generate(QMainWindow):
         self.water_barrier = int(self.ocean.text())
         self.grass_barrier = int(self.trava.text())
         self.btn.clicked.connect(self.generate_map)
-
 
     def generate_map(self):
         print("\n\n----GENERATING ON----")
@@ -74,6 +72,6 @@ class Generate(QMainWindow):
 
 
 app = QApplication(sys.argv)
-ex = Generate()
+ex = Generate("")
 ex.show()
 sys.exit(app.exec_())
