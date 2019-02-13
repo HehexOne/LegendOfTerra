@@ -511,7 +511,10 @@ class Ghost(Creature):
     def update(self, world_map):
         if self.dead:
             return
-        player = player_group.sprites()[0]
+        try:
+            player = player_group.sprites()[0]
+        except Exception:
+            player = Player(player_group, 9, 4, 20, 20)
         if self.zone.colliderect(player.rect):
             dx, dy = self.rect.x - player.rect.x, self.rect.y - player.rect.y
             dist = math.hypot(dx, dy)

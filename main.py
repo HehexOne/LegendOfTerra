@@ -103,7 +103,15 @@ def pause():
 
 
 def dead():
-    pass
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+        screen.fill(pygame.Color('black'))
+        font_tmp = pygame.font.SysFont('Century Gothic', 40)
+        textsurface = font_tmp.render(f'You died! Press Cross to exit.', False, (255, 0, 0))
+        screen.blit(textsurface, (30, 600))
+        pygame.display.flip()
 
 
 def draw_interface():
@@ -124,6 +132,8 @@ def game():
         player.move(random.randint(0, width), random.randint(0, width))
     running = True
     while running:
+        if player.hp <= 0:
+            dead()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 dp.set_value("Player", player.generate_save())
