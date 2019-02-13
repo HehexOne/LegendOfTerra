@@ -10,7 +10,6 @@ tile_size = 225
 fps = 60
 screen_size = width, height = tile_size * 3, tile_size * 3
 
-
 # High values of this parameter
 #  Not recommended if you have got not so powerful PC (64 max)
 size = 66  # Size of map (Example: size = 256  =>  map: 256x256)
@@ -45,7 +44,6 @@ textures = {
     3: "snow.png"
 }
 
-
 # All groups
 tile_group = pygame.sprite.Group()
 creatures_group = pygame.sprite.Group()
@@ -57,6 +55,7 @@ raccoons_group = pygame.sprite.Group()
 foliage_group = pygame.sprite.Group()
 sparkle_group = pygame.sprite.Group()
 enemies_group = pygame.sprite.Group()
+hiden_group = pygame.sprite.Group()
 
 
 # Reset saves.json
@@ -130,12 +129,12 @@ def generate_map():
                 pixels[x, y] = random.randint(210, 240), \
                                random.randint(160, 211), \
                                random.randint(40, 95)
-            if arr[x // tmp_val][y // tmp_val][x % tmp_val][y % tmp_val]\
-                    != water and arr[x // tmp_val][y // tmp_val]\
-                [x % tmp_val][y % tmp_val] != sand and \
+            if arr[x // tmp_val][y // tmp_val][x % tmp_val][y % tmp_val] \
+                    != water and arr[x // tmp_val][y // tmp_val] \
+                    [x % tmp_val][y % tmp_val] != sand and \
                     math.degrees(random.uniform(0, 40) // 14) \
                     // 10 == snow_disabled:
-                arr[x // tmp_val][y // tmp_val][x % tmp_val][y % tmp_val]\
+                arr[x // tmp_val][y // tmp_val][x % tmp_val][y % tmp_val] \
                     = snow
                 pixels[x, y] = random.randint(220, 255), \
                                random.randint(220, 255), 255
@@ -298,13 +297,15 @@ class Player(Creature):
             if brds.type == "up" and block[1] != 0:
                 self.move(self.rect.x, 580)
                 block = [block[0], block[1] - 1]
-            elif brds.type == "down" and block[1] != (size // (width // tile_size)) - 1:
+            elif brds.type == "down" and block[1] != (
+                    size // (width // tile_size)) - 1:
                 self.move(self.rect.x, 10)
                 block = [block[0], block[1] + 1]
             elif brds.type == "left" and block[0] != 0:
                 self.move(580, self.rect.y)
                 block = [block[0] - 1, block[1]]
-            elif brds.type == "right" and block[0] != (size // (width // tile_size)) - 1:
+            elif brds.type == "right" and block[0] != (
+                    size // (width // tile_size)) - 1:
                 self.move(20, self.rect.y)
                 block = [block[0] + 1, block[1]]
             re_render(world_map)
@@ -345,7 +346,8 @@ class Raccoon(Creature):
         self.cut_sheet(load_image('raccoon.png'), 12, 8)
         self.cur_frame = 58
         self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(random.randint(20, width - 30), random.randint(20, width - 30))
+        self.rect = self.rect.move(random.randint(20, width - 30),
+                                   random.randint(20, width - 30))
         if d is not None:
             self.restore_from_save(d)
 
@@ -482,7 +484,8 @@ class Particle(pygame.sprite.Sprite):
 class Ghost(Creature):
 
     def __init__(self, d=None):
-        super().__init__(creatures_group, "Enemy", 40, random.randint(6, 10), random.randint(1, 5))
+        super().__init__(creatures_group, "Enemy", 40, random.randint(6, 10),
+                         random.randint(1, 5))
         self.block = [random.randint(0, 21), random.randint(0, 21)]
         self.frames = []
         self.add(enemies_group)
@@ -492,8 +495,10 @@ class Ghost(Creature):
         self.cut_sheet(load_image('ghost.png'), 12, 8)
         self.cur_frame = 4
         self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(random.randint(20, width - 30), random.randint(20, width - 30))
-        self.zone = pygame.Rect(self.rect.x - 100, self.rect.y - 100, self.rect.x + 300, self.rect.y ** 2 + 300)
+        self.rect = self.rect.move(random.randint(20, width - 30),
+                                   random.randint(20, width - 30))
+        self.zone = pygame.Rect(self.rect.x - 100, self.rect.y - 100,
+                                self.rect.x + 300, self.rect.y ** 2 + 300)
         self.dead = False
         self.cooldown = 0
         if d is not None:
@@ -514,7 +519,7 @@ class Ghost(Creature):
         try:
             player = player_group.sprites()[0]
         except Exception:
-            player = Player(player_group, 9, 4, 20, 20)
+            player = Player(hiden_group, 9, 4, 20, 20)
         if self.zone.colliderect(player.rect):
             dx, dy = self.rect.x - player.rect.x, self.rect.y - player.rect.y
             dist = math.hypot(dx, dy)

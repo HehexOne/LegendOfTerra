@@ -42,15 +42,11 @@ def start_screen():
                 if event.key == pygame.K_q:
                     is_running = False
                 if event.key == pygame.K_p:
-                    init()
                     game()
                 if event.key == pygame.K_r:
                     reset()
                     render_ui = True
-                    dp = DataProvider()
-                    if dp.get_value("isNew"):
-                        generate_map()
-                        del dp
+                    pygame.quit()
 
                     dp = DataProvider()
                     world_map = dp.get_value("map")
@@ -70,11 +66,13 @@ def start_screen():
         menu = pygame.font.SysFont('Century Gothic', 40)
         textsurface = menu.render('Press P to play.', False, (70, 100, 150))
         screen.blit(textsurface, (30, 200))
-        textsurface = menu.render('Press R to reset saves.', False, (70, 100, 150))
+        textsurface = menu.render('Press R to reset saves. (Requires restart)',
+                                  False, (70, 100, 150))
         screen.blit(textsurface, (30, 250))
         textsurface = menu.render('Press E to exit.', False, (70, 100, 150))
         screen.blit(textsurface, (30, 300))
-        textsurface = menu.render(f'Your last score: {player.score}', False, (255, 255, 150))
+        textsurface = menu.render(f'Your last score: {player.score}', False,
+                                  (255, 255, 150))
         screen.blit(textsurface, (30, 600))
         pygame.display.flip()
 
@@ -95,7 +93,9 @@ def pause():
         try:
             screen.fill(pygame.Color('black'))
             font_tmp = pygame.font.SysFont('Century Gothic', 40)
-            textsurface = font_tmp.render(f'Pause. Press Q to play or Cross to exit.', False, (255, 255, 255))
+            textsurface = font_tmp.render(
+                f'Pause. Press Q to play or Cross to exit.', False,
+                (255, 255, 255))
             screen.blit(textsurface, (30, 600))
             pygame.display.flip()
         except Exception:
@@ -109,7 +109,8 @@ def dead():
                 pygame.quit()
         screen.fill(pygame.Color('black'))
         font_tmp = pygame.font.SysFont('Century Gothic', 40)
-        textsurface = font_tmp.render(f'You died! Press Cross to exit.', False, (255, 0, 0))
+        textsurface = font_tmp.render(f'You died! Press Cross to exit.', False,
+                                      (255, 0, 0))
         screen.blit(textsurface, (30, 600))
         pygame.display.flip()
 
@@ -118,8 +119,11 @@ def draw_interface():
     pygame.draw.rect(screen, (0, 0, 0), (20, 20, 200, 40))
     pygame.draw.rect(screen, (0, 0, 0), (237, 20, 200, 40))
     pygame.draw.rect(screen, (0, 0, 0), (455, 20, 200, 40))
-    pygame.draw.rect(screen, (200, 0, 0), (30, 30, abs(int(180 * (player.hp / player.max_hp))), 20))
-    textsurface = font.render(f'Coins: {player.coins} / Potions: {player.num_of_potions}', False, (255, 255, 255))
+    pygame.draw.rect(screen, (200, 0, 0),
+                     (30, 30, abs(int(180 * (player.hp / player.max_hp))), 20))
+    textsurface = font.render(
+        f'Coins: {player.coins} / Potions: {player.num_of_potions}', False,
+        (255, 255, 255))
     screen.blit(textsurface, (460, 30))
     textsurface = font.render(f'Score: {player.score}', False, (255, 255, 255))
     screen.blit(textsurface, (245, 30))
@@ -151,7 +155,8 @@ def game():
                 if event.key == pygame.K_e:
                     player.check_bush_raccoon()
                 if event.key == pygame.K_SPACE:
-                    enemy = pygame.sprite.spritecollideany(player, enemies_group)
+                    enemy = pygame.sprite.spritecollideany(player,
+                                                           enemies_group)
                     if enemy:
                         Particle(player.rect.x, player.rect.y)
                         enemy.cast_damage(player.get_damage(), player)
