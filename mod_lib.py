@@ -468,8 +468,8 @@ class Particle(pygame.sprite.Sprite):
         super().__init__(sparkle_group)
         self.image = load_image("sparkle.png")
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = x - 80
+        self.rect.y = y - 80
         self.live = 0
 
     def update(self):

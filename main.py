@@ -33,13 +33,73 @@ def init():
 
 
 def start_screen():
+    global render_ui, world_map, player, dp
+    is_running = True
     init()
-    game()
-    pass
+    while is_running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    is_running = False
+                if event.key == pygame.K_p:
+                    init()
+                    game()
+                if event.key == pygame.K_r:
+                    reset()
+                    render_ui = True
+                    dp = DataProvider()
+                    if dp.get_value("isNew"):
+                        generate_map()
+                        del dp
+
+                    dp = DataProvider()
+                    world_map = dp.get_value("map")
+                    player = None
+                if event.key == pygame.K_e:
+                    return
+            if event.type == pygame.QUIT:
+                dp.set_value("Player", player.generate_save())
+                dp.set_value("Active_Block", get_block())
+                dp.save()
+                is_running = False
+                pygame.quit()
+        screen.fill(pygame.Color('black'))
+        header = pygame.font.SysFont('Century Gothic', 70)
+        textsurface = header.render('Legend of Terra', False, (70, 100, 150))
+        screen.blit(textsurface, (30, 50))
+        menu = pygame.font.SysFont('Century Gothic', 40)
+        textsurface = menu.render('Press P to play.', False, (70, 100, 150))
+        screen.blit(textsurface, (30, 200))
+        textsurface = menu.render('Press R to reset saves.', False, (70, 100, 150))
+        screen.blit(textsurface, (30, 250))
+        textsurface = menu.render('Press E to exit.', False, (70, 100, 150))
+        screen.blit(textsurface, (30, 300))
+        textsurface = menu.render(f'Your last score: {player.score}', False, (255, 255, 150))
+        screen.blit(textsurface, (30, 600))
+        pygame.display.flip()
 
 
 def pause():
-    pass
+    is_running = True
+    while is_running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_q:
+                    is_running = False
+            if event.type == pygame.QUIT:
+                dp.set_value("Player", player.generate_save())
+                dp.set_value("Active_Block", get_block())
+                dp.save()
+                is_running = False
+                pygame.quit()
+        try:
+            screen.fill(pygame.Color('black'))
+            font_tmp = pygame.font.SysFont('Century Gothic', 40)
+            textsurface = font_tmp.render(f'Pause. Press Q to play or Cross to exit.', False, (255, 255, 255))
+            screen.blit(textsurface, (30, 600))
+            pygame.display.flip()
+        except Exception:
+            pass
 
 
 def dead():
@@ -70,6 +130,7 @@ def game():
                 dp.set_value("Active_Block", get_block())
                 dp.save()
                 running = False
+                pygame.quit()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
                     player.use_potion()
@@ -82,7 +143,7 @@ def game():
                 if event.key == pygame.K_SPACE:
                     enemy = pygame.sprite.spritecollideany(player, enemies_group)
                     if enemy:
-                        Particle(player.rect.x - 80, player.rect.y - 80)
+                        Particle(player.rect.x, player.rect.y)
                         enemy.cast_damage(player.get_damage(), player)
         clock.tick(fps)
         tile_group.draw(screen)
@@ -107,5 +168,4 @@ def game():
 
 
 start_screen()
-
 pygame.quit()
