@@ -61,7 +61,7 @@ def start_screen():
                 pygame.quit()
         screen.fill(pygame.Color('black'))
         header = pygame.font.SysFont('Century Gothic', 70)
-        textsurface = header.render('Legend of Terra', False, (70, 100, 150))
+        textsurface = header.render('Legend of Terra', False, (255, 255, 0))
         screen.blit(textsurface, (30, 50))
         menu = pygame.font.SysFont('Century Gothic', 40)
         textsurface = menu.render('Press P to play.', False, (70, 100, 150))
@@ -72,7 +72,7 @@ def start_screen():
         textsurface = menu.render('Press E to exit.', False, (70, 100, 150))
         screen.blit(textsurface, (30, 300))
         textsurface = menu.render(f'Your last score: {player.score}', False,
-                                  (255, 255, 150))
+                                  (255, 150, 150))
         screen.blit(textsurface, (30, 600))
         pygame.display.flip()
 
