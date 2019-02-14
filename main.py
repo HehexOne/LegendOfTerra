@@ -132,6 +132,7 @@ def draw_interface():
 def game():
     global render_ui
     re_render(world_map)
+    [Ghost() for i in range(random.randint(1, 10))]
     while pygame.sprite.spritecollideany(player, water_group):
         player.move(random.randint(0, width), random.randint(0, width))
     running = True

@@ -313,6 +313,10 @@ class Player(Creature):
                 self.move(x, y)
                 block = tmp_block
                 re_render(world_map)
+                return
+            if self.rect.x != old_x or self.rect.y != old_y:
+                [i.kill() for i in enemies_group.sprites()]
+                [Ghost() for i in range(random.randint(1, 10))]
 
     def move(self, x, y):
         self.rect.x = x
@@ -398,8 +402,6 @@ class Tile(pygame.sprite.Sprite):
 
 def re_render(world_map):
     [i.kill() for i in tile_group.sprites()]
-    [i.kill() for i in enemies_group.sprites()]
-    [Ghost() for i in range(random.randint(1, 10))]
     for x in range(width // tile_size):
         for y in range(height // tile_size):
             tile = Tile(tile_group, world_map[block[0]][block[1]][x][y],
